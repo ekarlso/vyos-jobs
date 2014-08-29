@@ -1,0 +1,80 @@
+- job-template:
+    name: 'coverage-{name}'
+
+    wrappers:
+      - build-timeout:
+          timeout: 40
+      - timestamps
+
+    builders:
+      - coverage
+
+    node: '{node}'
+
+
+- job-template:
+    name: 'gate-{name}-pep8'
+
+    builders:
+      - pep8
+
+    node: '{node}'
+
+
+- job-template:
+    name: 'gate-{name}-python27-{arch}'
+
+    wrappers:
+      - build-timeout:
+          timeout: 50
+      - timestamps
+
+    builders:
+      - python27
+      - assert-no-extra-files
+
+    publishers:
+      - test-results
+
+    node: '{node}-{arch}'
+
+
+- job-template:
+    name: 'gate-{name}-python34-{arch}'
+
+    wrappers:
+      - build-timeout:
+          timeout: 40
+      - timestamps
+
+    builders:
+      - python34
+      - assert-no-extra-files
+
+    publishers:
+      - test-results
+
+    node: '{node}-{arch}'
+
+
+- job-template:
+    name: 'gate-{name}-docs'
+
+    builders:
+      - docs
+
+    node: '{node}'
+
+
+- job-group:
+    name: python-jobs
+    jobs:
+      - 'coverage-{name}'
+      - 'gate-{name}-pep8'
+      - 'gate-{name}-python27-{arch}'
+      - 'gate-{name}-python34-{arch}'
+      #- 'gate-{name}-docs'
+      # pylint isn't standard
+      # pip-missing-reqs isn't standard
+      # gate-{name}-tox-{envlist} also isn't standard, but is reserved for
+      # projects that want to run specific jobs via tox

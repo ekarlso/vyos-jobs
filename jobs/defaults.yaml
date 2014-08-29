@@ -1,0 +1,21 @@
+- defaults:
+    name: global
+    description: |
+        <p><b>This job is managed by jenkins-job-bulder</b></p>
+
+        <p><b>Do NOT edit this job through the jenkins web interface aka HERE</b></p>
+
+        <p><b>If you want to make changes please submit a pull request to:
+            <a href="http://github.com/vyos/vyos-jobs">vyos-jobs @ github repository</a>
+        </b></p>
+    project-type: freestyle
+    concurrent: true
+    wrappers:
+        - build-timeout:
+            timeout: 60
+        - timestamps
+    logrotate:
+      daysToKeep: 1
+      numToKeep: -1
+      artifactDaysToKeep: -1
+      artifactNumToKeep: -1

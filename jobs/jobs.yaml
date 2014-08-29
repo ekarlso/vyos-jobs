@@ -1,0 +1,10 @@
+- project:
+    name: vyconfd
+    github-org: vyos
+    node: 'squeeze'
+    arch:
+      - arm
+      - i686
+      - amd64
+    jobs:
+      - python-jobs

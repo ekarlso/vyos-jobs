@@ -1,0 +1,125 @@
+- builder:
+    name: coverage
+    builders:
+      - shell: "tox -e coverage"
+
+
+- builder:
+    name: docs
+    builders:
+      - shell: "tox -e docs"
+
+
+- builder:
+    name: bashate
+    builders:
+      - shell: "/usr/local/jenkins/slave_scripts/run-bashate.sh"
+
+
+- builder:
+    name: pep8
+    builders:
+      - shell: "tox -epep8"
+
+
+- builder:
+    name: python27
+    builders:
+      - shell: "tox -e py27"
+
+
+- builder:
+    name: python34
+    builders:
+      - shell: "tox -e py34"
+
+
+- builder:
+    name: assert-no-extra-files
+    builders:
+      - shell: |
+          #!/bin/bash
+          OUT=`git ls-files --other --exclude-standard --directory`
+          if [ -z "$OUT" ]; then
+              echo "No extra files created during test."
+              exit 0
+          else
+              echo "The following un-ignored files were created during the test:"
+              echo "$OUT"
+              exit 0  # TODO: change to 1 to fail tests.
+          fi
+
+
+- wrapper:
+    name: build-timeout
+    wrappers:
+      - timeout:
+          timeout: '{timeout}'
+          timeout-var: 'BUILD_TIMEOUT'
+          fail: true
+
+
+# Publishers - tests
+- publisher:
+    name: coverage-log
+    publishers:
+      - scp:
+          site: 'static.vyos.org'
+          files:
+            - target: 'logs/$LOG_PATH'
+              source: 'coverage/**'
+              keep-hierarchy: true
+              copy-after-failure: true
+
+
+- publisher:
+    name: test-results
+    publishers:
+      - scp:
+          site: 'static.vyos.org'
+          files:
+            - target: 'logs/$LOG_PATH'
+              source: '**/*nose_results.html'
+              keep-hierarchy: false
+              copy-after-failure: true
+            - target: 'logs/$LOG_PATH'
+              source: '**/*testr_results.html.gz'
+              keep-hierarchy: false
+              copy-after-failure: true
+            - target: 'logs/$LOG_PATH'
+              source: '.testrepository/tmp*'
+              keep-hierarchy: false
+              copy-after-failure: true
+            - target: 'logs/$LOG_PATH'
+              source: '**/*subunit_log.txt.gz'
+              keep-hierarchy: false
+              copy-after-failure: true
+            - target: 'logs/$LOG_PATH/tox'
+              source: '.tox/*/log/*'
+              keep-hierarchy: false
+              copy-after-failure: true
+
+
+# Publishers - Docs
+- publisher:
+    name: upload-sphinx-draft
+    publishers:
+      - scp:
+          site: 'static.vyos.org'
+          files:
+            - target: 'docs-draft/$LOG_PATH'
+              source: 'doc/build/html/**'
+              keep-hierarchy: true
+              copy-after-failure: true
+
+
+- publisher:
+    name: upload-docs-draft
+    publishers:
+      - scp:
+          site: 'static.vyos.org'
+          files:
+            - target: 'docs-draft/$LOG_PATH/'
+              source: 'publish-docs/**'
+              keep-hierarchy: true
+              copy-after-failure: true
